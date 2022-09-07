@@ -155,15 +155,11 @@ func (ctrl *AppGroupController) agDeleted(obj interface{}) {
 // podAdded : reacts to a pod creation
 func (ctrl *AppGroupController) podAdded(obj interface{}) {
 	pod := obj.(*v1.Pod)
-
 	agName := util.GetPodAppGroupLabel(pod)
-	klog.InfoS("agName: ", agName)
-
 	if len(agName) == 0 {
 		return
 	}
-
-	ag, err := ctrl.agLister.Get(agName)
+	ag, err := ctrl.agLister.AppGroups(pod.Namespace).Get(agName)
 	if err != nil {
 		klog.ErrorS(err, "Error while adding pod")
 		return
@@ -218,7 +214,7 @@ func (ctrl *AppGroupController) processNextWorkItem() bool {
 // syncHandler : syncs AppGroup and converts the status
 func (ctrl *AppGroupController) syncHandler(key string) error {
 	// Convert the namespace/name string into a distinct namespace and name
-	_, name, err := cache.SplitMetaNamespaceKey(key)
+	namespace, name, err := cache.SplitMetaNamespaceKey(key)
 	if err != nil {
 		runtime.HandleError(fmt.Errorf("invalid resource key: %s", key))
 		return nil
@@ -229,7 +225,7 @@ func (ctrl *AppGroupController) syncHandler(key string) error {
 			return
 		}
 	}()
-	ag, err := ctrl.agLister.Get(name)
+	ag, err := ctrl.agLister.AppGroups(namespace).Get(name)
 	if apierrs.IsNotFound(err) {
 		klog.V(5).InfoS("App group has been deleted", "appGroup", key)
 		return nil
@@ -241,6 +237,7 @@ func (ctrl *AppGroupController) syncHandler(key string) error {
 
 	agCopy := ag.DeepCopy()
 	selector := labels.Set(map[string]string{v1alpha1.AppGroupLabel: agCopy.Name}).AsSelector()
+
 	pods, err := ctrl.podLister.List(selector)
 	if err != nil {
 		klog.ErrorS(err, "List pods for App group failed", "AppGroup", klog.KObj(agCopy))
@@ -299,7 +296,7 @@ func (ctrl *AppGroupController) patchAppGroup(old, new *v1alpha1.AppGroup) error
 		return err
 	}
 
-	_, err = ctrl.agClient.DiktyoV1alpha1().AppGroups().Patch(context.TODO(), old.Name, types.MergePatchType, patch, metav1.PatchOptions{})
+	_, err = ctrl.agClient.DiktyoV1alpha1().AppGroups(old.Namespace).Patch(context.TODO(), old.Name, types.MergePatchType, patch, metav1.PatchOptions{})
 	return err
 }
 

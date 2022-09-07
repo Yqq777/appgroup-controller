@@ -3,7 +3,7 @@ module appgroup-controller
 go 1.18
 
 require (
-	github.com/diktyo-io/appgroup-api v0.0.0-20220907085806-1c0741a34a90
+	github.com/diktyo-io/appgroup-api v0.0.0-20220907142034-c45becbf1439
 	github.com/spf13/pflag v1.0.5
 	k8s.io/api v0.23.3
 	k8s.io/apimachinery v0.23.3

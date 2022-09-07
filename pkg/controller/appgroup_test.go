@@ -19,7 +19,6 @@ package controller
 import (
 	"context"
 	"fmt"
-	"k8s.io/klog/v2"
 	"k8s.io/kubernetes/pkg/controller"
 	"testing"
 	"time"
@@ -203,11 +202,7 @@ func TestAppGroupController_Run(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			klog.InfoS("c: ", c)
-			// klog.InfoS("c.agName: ", c.agName)
-
 			ps := makePodsAppGroup(c.selectors, c.deploymentNames, c.agName, c.podPhase)
-
 			var kubeClient = fake.NewSimpleClientset()
 
 			if len(ps) == 3 {
@@ -222,16 +217,16 @@ func TestAppGroupController_Run(t *testing.T) {
 			informerFactory := informers.NewSharedInformerFactory(kubeClient, controller.NoResyncPeriodFunc())
 			agInformerFactory := agInformer.NewSharedInformerFactory(agClient, controller.NoResyncPeriodFunc())
 			podInformer := informerFactory.Core().V1().Pods()
-			appGroupInformer := agInformerFactory.Diktyo().V1alpha1().AppGroups()
+			agDiktyoInformer := agInformerFactory.Diktyo().V1alpha1().AppGroups()
 
-			ctrl := NewAppGroupController(kubeClient, appGroupInformer, podInformer, agClient)
+			ctrl := NewAppGroupController(kubeClient, agDiktyoInformer, podInformer, agClient)
 
 			agInformerFactory.Start(ctx.Done())
 			informerFactory.Start(ctx.Done())
 
 			go ctrl.Run(1, ctx.Done())
 			err := wait.Poll(200*time.Millisecond, 1*time.Second, func() (done bool, err error) {
-				ag, err := agClient.DiktyoV1alpha1().AppGroups().Get(ctx, c.agName, metav1.GetOptions{})
+				ag, err := agClient.DiktyoV1alpha1().AppGroups("default").Get(ctx, c.agName, metav1.GetOptions{})
 				if err != nil {
 					return false, err
 				}
