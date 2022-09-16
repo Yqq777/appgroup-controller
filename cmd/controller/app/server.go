@@ -31,9 +31,9 @@ import (
 	"k8s.io/client-go/tools/leaderelection"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 
-	"appgroup-controller/pkg/controller"
 	clientset "github.com/diktyo-io/appgroup-api/pkg/generated/clientset/versioned"
 	informers "github.com/diktyo-io/appgroup-api/pkg/generated/informers/externalversions"
+	controller "github.com/diktyo-io/appgroup-controller/pkg/controller"
 )
 
 func newConfig(kubeconfig, master string, inCluster bool) (*restclient.Config, error) {

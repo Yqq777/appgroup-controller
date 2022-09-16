@@ -17,9 +17,9 @@ limitations under the License.
 package main
 
 import (
-	"appgroup-controller/cmd/controller/app"
 	"flag"
 	"fmt"
+	"github.com/diktyo-io/appgroup-controller/cmd/controller/app"
 	"os"
 
 	"github.com/spf13/pflag"
