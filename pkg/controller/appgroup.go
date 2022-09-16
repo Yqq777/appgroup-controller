@@ -17,10 +17,10 @@ limitations under the License.
 package controller
 
 import (
-	"appgroup-controller/util"
 	"context"
 	"fmt"
 	"github.com/diktyo-io/appgroup-api/pkg/apis/appgroup/v1alpha1"
+	"github.com/diktyo-io/appgroup-controller/util"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/klog/v2"

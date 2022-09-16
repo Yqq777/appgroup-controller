@@ -1,4 +1,4 @@
-module appgroup-controller
+module github.com/diktyo-io/appgroup-controller
 
 go 1.18
 
