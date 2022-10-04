@@ -217,7 +217,7 @@ func TestAppGroupController_Run(t *testing.T) {
 			informerFactory := informers.NewSharedInformerFactory(kubeClient, controller.NoResyncPeriodFunc())
 			agInformerFactory := agInformer.NewSharedInformerFactory(agClient, controller.NoResyncPeriodFunc())
 			podInformer := informerFactory.Core().V1().Pods()
-			agDiktyoInformer := agInformerFactory.Diktyo().V1alpha1().AppGroups()
+			agDiktyoInformer := agInformerFactory.Appgroup().V1alpha1().AppGroups()
 
 			ctrl := NewAppGroupController(kubeClient, agDiktyoInformer, podInformer, agClient)
 
@@ -226,7 +226,7 @@ func TestAppGroupController_Run(t *testing.T) {
 
 			go ctrl.Run(1, ctx.Done())
 			err := wait.Poll(200*time.Millisecond, 1*time.Second, func() (done bool, err error) {
-				ag, err := agClient.DiktyoV1alpha1().AppGroups("default").Get(ctx, c.agName, metav1.GetOptions{})
+				ag, err := agClient.AppgroupV1alpha1().AppGroups("default").Get(ctx, c.agName, metav1.GetOptions{})
 				if err != nil {
 					return false, err
 				}

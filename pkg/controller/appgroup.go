@@ -296,7 +296,7 @@ func (ctrl *AppGroupController) patchAppGroup(old, new *v1alpha1.AppGroup) error
 		return err
 	}
 
-	_, err = ctrl.agClient.DiktyoV1alpha1().AppGroups(old.Namespace).Patch(context.TODO(), old.Name, types.MergePatchType, patch, metav1.PatchOptions{})
+	_, err = ctrl.agClient.AppgroupV1alpha1().AppGroups(old.Namespace).Patch(context.TODO(), old.Name, types.MergePatchType, patch, metav1.PatchOptions{})
 	return err
 }
 

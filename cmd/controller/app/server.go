@@ -66,7 +66,7 @@ func Run(s *ServerRunOptions) error {
 	kubeClient := kubernetes.NewForConfigOrDie(config)
 
 	agInformerFactory := informers.NewSharedInformerFactory(client, 0)
-	agInformer := agInformerFactory.Diktyo().V1alpha1().AppGroups()
+	agInformer := agInformerFactory.Appgroup().V1alpha1().AppGroups()
 
 	coreInformerFactory := coreinformers.NewSharedInformerFactory(kubeClient, 0)
 	podInformer := coreInformerFactory.Core().V1().Pods()
