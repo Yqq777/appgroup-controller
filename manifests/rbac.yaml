@@ -17,6 +17,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name:  appgroup-controller
+  namespace: network-aware-controllers
 roleRef:
   kind: ClusterRole
   name: appgroup-controller
