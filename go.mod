@@ -3,12 +3,12 @@ module github.com/diktyo-io/appgroup-controller
 go 1.18
 
 require (
-	github.com/diktyo-io/appgroup-api v0.0.9-alpha
+	github.com/diktyo-io/appgroup-api v1.0.3-alpha
 	github.com/spf13/pflag v1.0.5
 	k8s.io/api v0.23.3
 	k8s.io/apimachinery v0.23.3
 	k8s.io/apiserver v0.23.3
-	k8s.io/client-go v0.23.3
+	k8s.io/client-go v0.23.10
 	k8s.io/klog/v2 v2.30.0
 	k8s.io/kubernetes v1.25.0
 )
