@@ -18,33 +18,38 @@ package appgroup
 
 import (
 	"context"
+	"flag"
 	"fmt"
+	//"github.com/Yqq777/appgroup-api/pkg/apis/appgroup/v1alpha1"
 	"github.com/diktyo-io/appgroup-api/pkg/apis/appgroup/v1alpha1"
-	"github.com/diktyo-io/appgroup-controller/util"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/klog/v2"
-	"reflect"
-	"sort"
-	"time"
-
-	v1 "k8s.io/api/core/v1"
-	apierrs "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/apimachinery/pkg/util/wait"
-	coreinformer "k8s.io/client-go/informers/core/v1"
-
 	clientset "github.com/diktyo-io/appgroup-api/pkg/generated/clientset/versioned"
 	appgroupinformers "github.com/diktyo-io/appgroup-api/pkg/generated/informers/externalversions/appgroup/v1alpha1"
 	appgrouplisters "github.com/diktyo-io/appgroup-api/pkg/generated/listers/appgroup/v1alpha1"
+	"github.com/diktyo-io/appgroup-controller/util"
+	v1 "k8s.io/api/core/v1"
+	apierrs "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/apimachinery/pkg/util/wait"
+	coreinformer "k8s.io/client-go/informers/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	corelister "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
+	"k8s.io/klog/v2"
+	"os"
+	"path/filepath"
+	"reflect"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
 )
 
 const (
@@ -385,4 +390,61 @@ func defaultTopologyOrder(workloadList v1alpha1.AppGroupWorkloadList) v1alpha1.A
 
 	klog.V(5).Info("topologyList: ", topologyList)
 	return topologyList
+}
+
+// todo 索引问题
+// PP true : PP * DP * TP
+// DP true : DP * TP
+// TP true : TP
+func createPPDPTPConfig(agCopy *v1alpha1.AppGroup) {
+	PP := agCopy.Spec.PPScale
+	DP := agCopy.Spec.DPScale
+	TP := agCopy.Spec.TPScale
+	workloadList := agCopy.Spec.Workloads
+	var parallelParameter int32
+	var parallelParameterList []int32
+	for _, workLoad := range workloadList {
+		if workLoad.Localities.PPLocality {
+			parallelParameter = PP * DP * TP
+		} else if workLoad.Localities.DPLocality {
+			parallelParameter = DP * TP
+		} else if workLoad.Localities.TPLocality {
+			parallelParameter = TP
+		} else {
+			parallelParameter = 0
+		}
+		parallelParameterList = append(parallelParameterList, parallelParameter)
+	}
+
+	//[]int32 -> string
+	strArray := make([]string, len(parallelParameterList))
+	for i, num := range parallelParameterList {
+		strArray[i] = strconv.Itoa(int(num))
+	}
+	result := strings.Join(strArray, ",")
+
+	// create configMap
+	configMap := &v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "parallelParameter-configmap",
+			Namespace: "default",
+		},
+		Data: map[string]string{
+			"parallelParameter": result,
+		},
+	}
+	kubeconfig := flag.String("kubeconfig", filepath.Join(os.Getenv("HOME"), ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+	flag.Parse()
+	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	if err != nil {
+		panic(err)
+	}
+	clientSet, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		panic(err)
+	}
+	_, err = clientSet.CoreV1().ConfigMaps("default").Create(context.TODO(), configMap, metav1.CreateOptions{})
+	if err != nil {
+		panic(err)
+	}
 }
